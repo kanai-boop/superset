@@ -1,65 +1,89 @@
-
 import json
-from superset_tools.api_client import SupersetClient
+import subprocess
+import os
 
-def create_highlight_charts():
-    """
-    Creates a series of Big Number with Trendline charts for the GA Dashboard.
-    """
-    client = SupersetClient()
-    client.login()
+def run_command(command):
+    """Runs a shell command and prints its output."""
+    print(f"Executing: {' '.join(command)}")
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    process = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        cwd=project_root
+    )
+    if process.stdout:
+        print("STDOUT:", process.stdout)
+    if process.stderr:
+        print("STDERR:", process.stderr)
+    return process
 
-    dataset_id = 34
+def main():
+    """Main function to create two Big Number charts for GA."""
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    python_executable = os.path.join(project_root, "venv", "bin", "python")
+    api_client_path = os.path.join(project_root, "scripts", "superset_tools", "api_client.py")
 
     charts_to_create = [
-        {"chart_name": "GA: Total Users", "metric": "Users"},
-        {"chart_name": "GA: Total Sessions", "metric": "Sessions"},
-        {"chart_name": "GA: Total Conversions", "metric": "Conversions"},
-        {"chart_name": "GA: Total Revenue", "metric": "Revenue"},
-        {"chart_name": "GA: Conversion Rate", "metric": "Conversion Rate"},
-        {"chart_name": "GA: Avg Engagement Time", "metric": "Avg Engagement Time (sec)"},
+        {
+            "slice_name": "GA: Bounce Rate (Proxy)",
+            "viz_type": "big_number",
+            "datasource_id": 34,
+            "datasource_type": "table",
+            "params": {
+                "metric": "Bounce Rate (Proxy)",
+                "granularity_sqla": "session_start_timestamp",
+                "time_grain_sqla": "P1D",
+                "viz_type": "big_number",
+                "show_trend_line": True,
+                "start_y_axis_at_zero": False,
+                "time_range_endpoints": ["inclusive", "exclusive"],
+                "y_axis_format": ".2%",
+                "time_range": "No filter",
+                "compare_lag": "7",
+                "compare_suffix": "WoW",
+                "comparison_type": "percentage",
+                "show_delta": True,
+                "show_percent": True,
+                "subheader_font_size": 0.15,
+            }
+        },
+        {
+            "slice_name": "GA: AOV",
+            "viz_type": "big_number",
+            "datasource_id": 34,
+            "datasource_type": "table",
+            "params": {
+                "metric": "AOV",
+                "granularity_sqla": "session_start_timestamp",
+                "time_grain_sqla": "P1D",
+                "viz_type": "big_number",
+                "show_trend_line": True,
+                "start_y_axis_at_zero": True,
+                "time_range_endpoints": ["inclusive", "exclusive"],
+                "y_axis_format": "¥,.0f",
+                "time_range": "No filter",
+                "compare_lag": "7",
+                "compare_suffix": "WoW",
+                "comparison_type": "percentage",
+                "show_delta": True,
+                "show_percent": True,
+                "subheader_font_size": 0.15,
+            }
+        }
     ]
 
-    print(f"Creating {len(charts_to_create)} charts for dataset {dataset_id}...")
-
-    for chart_def in charts_to_create:
-        metric_name = chart_def["metric"]
+    for chart_payload in charts_to_create:
+        # The api_client expects the params to be a string, so we dump it again.
+        chart_payload["params"] = json.dumps(chart_payload["params"])
         
-        params = {
-            "datasource": f"{dataset_id}__table",
-            "viz_type": "big_number_with_trendline",
-            "metric": {
-                "label": metric_name
-            },
-            "time_range_endpoints": ["inclusive", "exclusive"],
-            "time_grain_sqla": "P1D",
-            "compare_lag": 1, # Compare to previous period
-            "comparison_type": "percentage", # Show as percentage change
-            "show_trend_line": True,
-            "start_y_axis_at_zero": True,
-            "show_delta": True,
-            "show_percent": True,
-            "subheader_font_size": 0.15, # Small
-        }
-
-        # Set the primary metric using its proper key if it's a saved metric
-        # For ad-hoc metrics, this structure might differ slightly but this is robust
-        params["metric"] = metric_name
-
-        payload = {
-            "slice_name": chart_def["chart_name"],
-            "viz_type": "big_number_with_trendline",
-            "datasource_id": dataset_id,
-            "datasource_type": "table",
-            "params": json.dumps(params),
-        }
-
-        try:
-            result = client.create_chart(payload)
-            new_chart_id = result.get("id")
-            print(f"Successfully created chart ''{chart_def['chart_name']}'' with ID: {new_chart_id}")
-        except Exception as e:
-            print(f"Error creating chart ''{chart_def['chart_name']}'': {e}")
+        command = [
+            python_executable,
+            api_client_path,
+            "create_chart",
+            "--payload", json.dumps(chart_payload)
+        ]
+        run_command(command)
 
 if __name__ == "__main__":
-    create_highlight_charts()
+    main()

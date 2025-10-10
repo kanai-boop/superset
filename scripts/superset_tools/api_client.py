@@ -71,6 +71,9 @@ Response JSON: {detail}""") from e
     def create_chart(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         return self._request("POST", "/api/v1/chart/", json=payload).json()
 
+    def delete_chart(self, chart_id: int) -> Dict[str, Any]:
+        return self._request("DELETE", f"/api/v1/chart/{chart_id}").json()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Superset API Client")
@@ -98,6 +101,10 @@ if __name__ == "__main__":
     update_ds_parser.add_argument("--dataset_id", required=True, type=int, help="Dataset ID")
     update_ds_parser.add_argument("--payload", required=True, help="JSON payload for the update")
 
+    # delete_chart command
+    delete_chart_parser = subparsers.add_parser("delete_chart", help="Delete a chart")
+    delete_chart_parser.add_argument("--chart_id", required=True, type=int, help="Chart ID to delete")
+
     args = parser.parse_args()
 
     client = SupersetClient()
@@ -122,6 +129,9 @@ if __name__ == "__main__":
     elif args.command == "update_dataset":
         payload = json.loads(args.payload)
         result = client.update_dataset(args.dataset_id, payload)
+        print(json.dumps(result, indent=2))
+    elif args.command == "delete_chart":
+        result = client.delete_chart(args.chart_id)
         print(json.dumps(result, indent=2))
     else:
         print(f"Unknown command: {args.command}")
