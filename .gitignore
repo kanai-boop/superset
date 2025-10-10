@@ -135,3 +135,11 @@ CLAUDE.local.md
 
 cookie.txt
 キャプチャ共有/
+# Temporary and sensitive files
+cookies.txt
+payload.json
+token.json
+superset_backup.sql
+
+# Image captures
+キャプチャ共有/
