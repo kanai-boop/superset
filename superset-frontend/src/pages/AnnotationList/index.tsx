@@ -26,7 +26,7 @@ import {
   SupersetClient,
   getClientErrorObject,
 } from '@superset-ui/core';
-import dayjs from 'dayjs';
+import { extendedDayjs as dayjs } from '@superset-ui/core/utils/dates';
 import rison from 'rison';
 
 import { ConfirmStatusChange, DeleteModal } from '@superset-ui/core/components';
@@ -236,19 +236,19 @@ function AnnotationList({
   const subMenuButtons: SubMenuProps['buttons'] = [];
 
   subMenuButtons.push({
+    name: t('Bulk select'),
+    onClick: toggleBulkSelect,
+    buttonStyle: 'secondary',
+    'data-test': 'annotation-bulk-select',
+  });
+
+  subMenuButtons.push({
     icon: <Icons.PlusOutlined iconSize="m" />,
     name: t('Annotation'),
     buttonStyle: 'primary',
     onClick: () => {
       handleAnnotationEdit(null);
     },
-  });
-
-  subMenuButtons.push({
-    name: t('Bulk select'),
-    onClick: toggleBulkSelect,
-    buttonStyle: 'secondary',
-    'data-test': 'annotation-bulk-select',
   });
 
   let hasHistory = true;

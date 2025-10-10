@@ -27,7 +27,9 @@ import {
   useEffect,
 } from 'react';
 
+import { ThemedAgGridReact } from '@superset-ui/core/components';
 import {
+  AgGridReact,
   AllCommunityModule,
   ClientSideRowModelModule,
   type ColDef,
@@ -36,9 +38,7 @@ import {
   GridState,
   CellClickedEvent,
   IMenuActionParams,
-  themeQuartz,
-} from 'ag-grid-community';
-import { AgGridReact } from 'ag-grid-react';
+} from '@superset-ui/core/components/ThemedAgGridReact';
 import { type FunctionComponent } from 'react';
 import { JsonObject, DataRecordValue, DataRecord, t } from '@superset-ui/core';
 import { SearchOutlined } from '@ant-design/icons';
@@ -131,10 +131,7 @@ const AgGridDataTable: FunctionComponent<AgGridTableProps> = memo(
 
     const defaultColDef = useMemo<ColDef>(
       () => ({
-        flex: 1,
         filter: true,
-        enableRowGroup: true,
-        enableValue: true,
         sortable: true,
         resizable: true,
         minWidth: 100,
@@ -251,17 +248,19 @@ const AgGridDataTable: FunctionComponent<AgGridTableProps> = memo(
       }
     }, [hasServerPageLengthChanged]);
 
+    useEffect(() => {
+      if (gridRef.current?.api) {
+        gridRef.current.api.sizeColumnsToFit();
+      }
+    }, [width]);
+
     const onGridReady = (params: GridReadyEvent) => {
       // This will make columns fill the grid width
       params.api.sizeColumnsToFit();
     };
 
     return (
-      <div
-        className="ag-theme-quartz"
-        style={containerStyles}
-        ref={containerRef}
-      >
+      <div style={containerStyles} ref={containerRef}>
         <div className="dropdown-controls-container">
           {renderTimeComparisonDropdown && (
             <div className="time-comparison-dropdown">
@@ -301,10 +300,9 @@ const AgGridDataTable: FunctionComponent<AgGridTableProps> = memo(
           )}
         </div>
 
-        <AgGridReact
+        <ThemedAgGridReact
           ref={gridRef}
           onGridReady={onGridReady}
-          theme={themeQuartz}
           className="ag-container"
           rowData={rowData}
           headerHeight={36}
@@ -317,7 +315,6 @@ const AgGridDataTable: FunctionComponent<AgGridTableProps> = memo(
           onCellClicked={handleCrossFilter}
           initialState={gridInitialState}
           suppressAggFuncInHeader
-          rowGroupPanelShow="always"
           enableCellTextSelection
           quickFilterText={serverPagination ? '' : quickFilterText}
           suppressMovableColumns={!allowRearrangeColumns}
