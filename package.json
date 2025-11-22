@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@luma.gl/webgl": "8.4.0"
+  }
+}
