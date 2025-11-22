@@ -90,8 +90,15 @@ def set_ga_dataset_metrics(dataset_id: int):
     print(f"Attempting to overwrite metrics for dataset {dataset_id}...")
 
     try:
+        # Per documentation, metrics must be wiped before updating to avoid conflicts.
+        print(f"Step 1: Wiping existing metrics from dataset {dataset_id}...")
+        client.update_dataset(dataset_id, {"metrics": []})
+        print("Step 1: Successfully wiped metrics.")
+
+        # Now, set the new, complete list of metrics.
+        print(f"Step 2: Setting new metrics for dataset {dataset_id}...")
         client.update_dataset(dataset_id, final_metrics_payload)
-        print(f"Successfully set {len(final_metrics_payload['metrics'])} metrics on dataset {dataset_id}.")
+        print(f"Step 2: Successfully set {len(final_metrics_payload['metrics'])} metrics on dataset {dataset_id}.")
     except Exception as e:
         print(f"Error updating dataset {dataset_id}: {e}")
 
