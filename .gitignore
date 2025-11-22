@@ -146,3 +146,7 @@ dataset_36_details.json
 payload.json
 token.json
 superset_backup.sql
+
+# GCP credentials (sensitive)
+docker/gcp_credentials.json
+gcp_service_account.json
